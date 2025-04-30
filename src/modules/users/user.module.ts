@@ -37,6 +37,18 @@ export class UserModule {
         path: 'user/:id',
         method: RequestMethod.GET,
       },
+      {
+        path: 'user/:id',
+        method: RequestMethod.DELETE,
+      },
+      {
+        path: 'user/:id',
+        method: RequestMethod.PUT,
+      },
+      {
+        path: 'users/search/:search',
+        method: RequestMethod.GET,
+      },
     );
   }
 }

@@ -8,11 +8,14 @@ import {
   UseGuards,
   Req,
   Param,
+  Delete,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthenticatedRequest } from './types/custemRequest';
+import { UserRole } from 'src/common/enums/user-role-enum';
 
 @Controller()
 export class UserController {
@@ -21,7 +24,7 @@ export class UserController {
   @Get('users')
   async findAll() {
     try {
-      return await this.findAll();
+      return await this.service.findAll();
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       throw new BadRequestException('Server error!');
@@ -49,20 +52,88 @@ export class UserController {
     }
   }
 
+  @Get('users/search/:search')
+  async findByEmailAndName(
+    @Param('search') search: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    try {
+      const user = req.user;
+      const userRole = await this.service.findById(user._id);
+
+      if (
+        userRole.role !== UserRole.SUPER_ADMIN &&
+        userRole.role !== UserRole.ADMIN
+      ) {
+        throw new BadRequestException('You are not authorized!');
+      }
+      return await this.service.findByEmailAndName(search);
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      throw new BadRequestException('Server error!');
+    }
+  }
+
+  @Delete('user/:id')
+  async delete(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    try {
+      const user = req.user;
+      const userRole = await this.service.findById(user._id);
+
+      if (user._id === id) {
+        throw new BadRequestException('You cannot delete yourself!');
+      }
+
+      if (userRole.role !== UserRole.SUPER_ADMIN) {
+        throw new BadRequestException('You are not authorized!');
+      }
+      return await this.service.delete(id);
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      throw new BadRequestException('Server error!');
+    }
+  }
+
+  @Put('user/:id')
+  async update(
+    @Param('id') id: string,
+    @Body() dto: { name?: string; role?: UserRole },
+    @Req() req: AuthenticatedRequest,
+  ) {
+    try {
+      const currentUser = req.user;
+      const userRole = await this.service.findById(currentUser._id);
+
+      if (userRole.role !== UserRole.SUPER_ADMIN) {
+        throw new BadRequestException('You are not authorized!');
+      }
+
+      // Faqat o'zining role ni o'zgartirishga ruxsat berilmaydi
+      if (currentUser._id === id && dto.role !== userRole.role) {
+        throw new BadRequestException('You cannot update your own role!');
+      }
+
+      return await this.service.update(id, dto);
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      throw new BadRequestException('Server error!');
+    }
+  }
+
   @Post('login')
   async login(
     @Body() dto: { email: string; password: string },
     @Res() res: Response,
   ) {
     try {
-      const token = await this.service.login(dto);
+      const { token, user } = await this.service.login(dto);
       res
         .cookie('token', token, {
           httpOnly: true,
           secure: false,
           maxAge: 3600000 * 4,
         })
-        .json('Login successfull');
+        .json(user);
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       throw new BadRequestException('Server error!');
@@ -75,14 +146,14 @@ export class UserController {
     @Res() res: Response,
   ) {
     try {
-      const token = await this.service.registerLocal(dto);
+      const { token, user } = await this.service.registerLocal(dto);
       res
         .cookie('token', token, {
           httpOnly: true,
           secure: false,
           maxAge: 3600000 * 4,
         })
-        .json('Register successfull');
+        .json(user);
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       throw new BadRequestException('Server error!');
@@ -101,7 +172,7 @@ export class UserController {
           secure: false,
           maxAge: 3600000 * 4,
         })
-        .redirect(`${process.env.CLIENT_URL}`);
+        .redirect(`${process.env.CLIENT_URL}/dashboard`);
     } catch (error) {
       console.error(error);
 

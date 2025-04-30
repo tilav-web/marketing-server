@@ -23,6 +23,6 @@ export class UserResponseDto {
   name: string;
   email: string;
   provider: string;
-  avatar: string;
+  avatar?: string;
   role: UserRole;
 }
