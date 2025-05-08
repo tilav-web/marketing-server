@@ -31,21 +31,21 @@ export class UserController {
     }
   }
 
-  @Get(`user/:id}`)
-  async findById(@Param('id') id: string) {
+  @Get('user/me')
+  async findMe(@Req() req: AuthenticatedRequest) {
     try {
-      return await this.service.findById(id);
+      const user = req.user;
+      return await this.service.findById(user._id);
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       throw new BadRequestException('Server error!');
     }
   }
 
-  @Get('user/me')
-  async findMe(@Req() req: AuthenticatedRequest) {
+  @Get(`user/:id`)
+  async findById(@Param('id') id: string) {
     try {
-      const user = req.user;
-      return await this.service.findById(user._id);
+      return await this.service.findById(id);
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       throw new BadRequestException('Server error!');

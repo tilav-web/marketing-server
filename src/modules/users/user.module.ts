@@ -34,6 +34,10 @@ export class UserModule {
         method: RequestMethod.GET,
       },
       {
+        path: 'user/me',
+        method: RequestMethod.GET,
+      },
+      {
         path: 'user/:id',
         method: RequestMethod.GET,
       },
@@ -45,6 +49,7 @@ export class UserModule {
         path: 'user/:id',
         method: RequestMethod.PUT,
       },
+
       {
         path: 'users/search/:search',
         method: RequestMethod.GET,
