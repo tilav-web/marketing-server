@@ -2,61 +2,66 @@ import {
   Controller,
   Get,
   Post,
-  Put,
-  Delete,
   Body,
   Param,
+  Put,
+  Delete,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
 import { DiagramService } from './diagram.service';
 import { CreateDiagramDto, UpdateDiagramDto } from './diagram.dto';
-import { Diagram } from './diagram.schema';
 
 @Controller('diagrams')
 export class DiagramController {
   constructor(private readonly diagramService: DiagramService) {}
 
-  @Post(':userId')
-  async create(
-    @Body() createDiagramDto: CreateDiagramDto,
-    @Param('userId') userId: string,
-  ): Promise<Diagram> {
+  @Post()
+  async create(@Body() createDiagramDto: CreateDiagramDto) {
     try {
-      const diagram = await this.diagramService.create({
-        ...createDiagramDto,
-        userId,
-      });
-      return { ...diagram.toObject(), shapes: [] };
+      return await this.diagramService.create(createDiagramDto);
     } catch (error) {
+      console.log(error);
+
       throw new HttpException(
-        `Failed to create diagram: ${error.message}`,
+        'Diagram yaratishda xatolik yuz berdi',
         HttpStatus.BAD_REQUEST,
       );
     }
   }
 
-  @Get(':userId')
-  async findAll(@Param('userId') userId: string): Promise<Diagram[]> {
+  @Post('save')
+  async save(@Body() diagramData: UpdateDiagramDto & { _id?: string }) {
     try {
-      return await this.diagramService.findAll(userId);
+      return await this.diagramService.saveDiagram(diagramData);
     } catch (error) {
+      console.log(error);
+
       throw new HttpException(
-        `Failed to fetch diagrams: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        'Diagram saqlashda xatolik yuz berdi',
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
 
+  @Get('user/:id')
+  async findAll(@Param('id') id: string) {
+    try {
+      return await this.diagramService.findAll(id);
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('Diagrammalar topilmadi', HttpStatus.NOT_FOUND);
+    }
+  }
+
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Diagram> {
+  async findOne(@Param('id') id: string) {
     try {
       return await this.diagramService.findOne(id);
     } catch (error) {
-      throw new HttpException(
-        `Failed to fetch diagram: ${error.message}`,
-        HttpStatus.NOT_FOUND,
-      );
+      console.log(error);
+
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -64,26 +69,25 @@ export class DiagramController {
   async update(
     @Param('id') id: string,
     @Body() updateDiagramDto: UpdateDiagramDto,
-  ): Promise<Diagram> {
+  ) {
     try {
       return await this.diagramService.update(id, updateDiagramDto);
     } catch (error) {
-      throw new HttpException(
-        `Failed to update diagram: ${error.message}`,
-        HttpStatus.BAD_REQUEST,
-      );
+      console.log(error);
+
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id') id: string) {
     try {
-      await this.diagramService.delete(id);
+      await this.diagramService.remove(id);
+      return { message: 'Diagram o‘chirildi' };
     } catch (error) {
-      throw new HttpException(
-        `Failed to delete diagram: ${error.message}`,
-        HttpStatus.NOT_FOUND,
-      );
+      console.log(error);
+
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
   }
 }

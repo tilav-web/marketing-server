@@ -1,10 +1,11 @@
 // diagram.module.ts
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { DiagramService } from './diagram.service';
 import { DiagramController } from './diagram.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Diagram, DiagramSchema } from './diagram.schema';
-import { ShapeModule } from '../shape/shape.module'; // TO‘G‘RI yo‘l
+import { NodesModule } from '../nodes/nodes.module'; // TO‘G‘RI yo‘l
+import { EdgesModule } from '../edges/edges.module';
 
 @Module({
   imports: [
@@ -14,9 +15,12 @@ import { ShapeModule } from '../shape/shape.module'; // TO‘G‘RI yo‘l
         schema: DiagramSchema,
       },
     ]),
-    ShapeModule, // BU YERDA!
+    NodesModule,
+    EdgesModule,
+    forwardRef(() => NodesModule),
   ],
   providers: [DiagramService],
   controllers: [DiagramController],
+  exports: [DiagramService],
 })
 export class DiagramModule {}
