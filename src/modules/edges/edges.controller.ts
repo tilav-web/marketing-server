@@ -49,11 +49,11 @@ export class EdgesController {
     }
   }
 
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
+  @Delete(':edge/:diagram')
+  async remove(@Param('edge') edge: string, @Param('diagram') diagram: string) {
     try {
-      await this.service.remove(id);
-      return { message: 'Edge deleted successfully' };
+      await this.service.remove({ edge, diagram });
+      return { message: 'Node deleted successfully' };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }

@@ -16,7 +16,7 @@ export class Edges {
 
   @Prop({ type: Types.ObjectId, ref: 'Diagram', required: true })
   diagram: Types.ObjectId;
-  @Prop({ default: 'default' })
+  @Prop({ default: 'custom' })
   type: string;
 
   @Prop({

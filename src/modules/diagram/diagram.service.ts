@@ -73,11 +73,6 @@ export class DiagramService {
   }
 
   async findAll(userId: string): Promise<Diagram[]> {
-    const diagrams = await this.model.find();
-    console.log(diagrams);
-
-    console.log(1);
-
     return await this.model
       .find({ user: new Types.ObjectId(userId) })
       .populate('edges')
@@ -161,6 +156,9 @@ export class DiagramService {
         { new: true },
       )
       .exec();
+
+    console.log(updatedDiagram);
+
     return updatedDiagram;
   }
 
@@ -172,7 +170,7 @@ export class DiagramService {
 
   async pullEdge({ edge, diagram }: { edge: string; diagram: string }) {
     return await this.model.findByIdAndUpdate(diagram, {
-      $pull: { nodes: new Types.ObjectId(edge) },
+      $pull: { edges: new Types.ObjectId(edge) },
     });
   }
 

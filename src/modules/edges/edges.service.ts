@@ -24,8 +24,6 @@ export class EdgesService {
       diagram: new Types.ObjectId(createEdgeDto.diagram),
     });
 
-    console.log(createdEdge);
-
     await this.diagramService.pushEdge({
       edge: new Types.ObjectId(createdEdge._id.toString()),
       diagram: createEdgeDto.diagram,
@@ -71,17 +69,12 @@ export class EdgesService {
     return updatedEdge;
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.model.deleteOne({ id }).exec();
-    if (result.deletedCount === 0) {
-      throw new NotFoundException(`Edge with id ${id} not found`);
-    }
+  async remove({ edge, diagram }): Promise<void> {
+    await this.model.findByIdAndDelete(edge).exec();
+    await this.diagramService.pullEdge({ edge, diagram });
   }
 
   async removeMany(id: string[]): Promise<void> {
-    const result = await this.model.deleteOne({ id }).exec();
-    if (result.deletedCount === 0) {
-      throw new NotFoundException(`Edge with id ${id} not found`);
-    }
+    await this.model.findByIdAndDelete(id).exec();
   }
 }
